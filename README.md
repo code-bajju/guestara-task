@@ -1,4 +1,4 @@
-# Guestara Task - MOBSICROLL MONTHLY CALENDAR VIEW
+# Guestara Task - MOBISCROLL MONTHLY CALENDAR VIEW
 
 ## Task Description
 
