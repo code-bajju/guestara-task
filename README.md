@@ -9,7 +9,6 @@ Create a desktop view replica of the Mobiscroll monthly calendar timeline in Rea
 https://github.com/user-attachments/assets/9a2105f9-4dea-42de-aa25-7ece6ffd8bf0
 
 
-
 ## Contribution Guide
 
 1. **Clone the Repository**
@@ -28,21 +27,20 @@ https://github.com/user-attachments/assets/9a2105f9-4dea-42de-aa25-7ece6ffd8bf0
    ```bash
    pnpm run dev
 
-
 ## Answers for Questions Asked in Assignment Description:
 
 ## Q.1) 3 things that you learned from this assignment?
-  - The first thing that I learned from this assignment is implementating drag and resize functionalities using react-rnd.
+
+  - The first thing that I learned from this assignment is implementing drag and resize functionalities using react-rnd.
   - Second thing that I learned from this assignment is managing states at different instances through out the project.
   - Lastly, I also learnt lot of new concept about Event handling too.
 
 ## Q.2) What was the most difficult part of the assignment?
-Sol: The most difficult part of the assignment is creat event, resize and drag functionality as it requires proper event positioning and resizing while keeping the UI element intact.
+
+Sol: The most difficult part of the assignment is creating the event, resize and drag functionalities as it requires proper event positioning and resizing while keeping the UI element intact.
 
 ## Q.3) What you would have done differently given more time?
-Sol: Currenly, there is an issue of overlapping events, I would like to fix that first and also want to implement drag and drop functionality to differnt resources. PS: I also forgot add resource addition 
- new functionality.
-     
-   
 
-   
+Sol: Currently, there is an issue of overlapping events, I would like to fix that first and also want to implement drag and drop functionality to different resources. PS: I also forgot add resource addition new functionality.
+
+Thanks:)
