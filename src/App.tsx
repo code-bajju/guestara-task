@@ -3,36 +3,44 @@ import { Header } from "./components/Header";
 import Grid from "./components/Grid";
 import { Event } from "./types";
 import { format } from "date-fns";
+import CustomDialog from "./components/CustomDialog";
 
 function App() {
-  // State to manage selected date
+  // State to manage the selected date
   const [selectedDate, setSelectedDate] = useState(new Date());
+
   // State to manage events
   const [events, setEvents] = useState<Event[]>([]);
-  // State to manage the currently dragged event
+
+  // State to manage the currently dragging event
   const [currentDragEvent, setCurrentDragEvent] = useState<Event | null>(null);
-  // Ref to store information about the dragging event
+
+  // State to control dialog visibility
+  const [dialogVisible, setDialogVisible] = useState(false);
+
+  // State to store event ID to be deleted
+  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+
+  // Ref to store the dragging event details
   const dragEvent = useRef<{
     newEvent: Event;
     startX: number;
     initialCell: DOMRect;
   } | null>(null);
-  // Ref to store references to date cells
+
+  // Ref to store date elements for scrolling purposes
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Get current year and month
-  const currentMonth = selectedDate;
+  // Get current year and month from the selected date
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
 
-  // Load events from localStorage on mount
+  // Load events from localStorage on initial render
   useEffect(() => {
     const storedEvents = localStorage.getItem("events");
-    console.log("Retrieved stored events:", storedEvents); // Debugging log
     if (storedEvents) {
       try {
         const parsedEvents = JSON.parse(storedEvents) as Event[];
-        console.log("Parsed events:", parsedEvents); // Debugging log
         setEvents(parsedEvents);
       } catch (error) {
         console.error("Failed to parse events from localStorage", error);
@@ -40,29 +48,28 @@ function App() {
     }
   }, []);
 
-  // Save events to localStorage whenever events state changes
+  // Save events to localStorage whenever the events state changes
   useEffect(() => {
     try {
-      console.log("Saving events to localStorage:", events); // Debugging log
       localStorage.setItem("events", JSON.stringify(events));
     } catch (error) {
       console.error("Failed to save events to localStorage", error);
     }
   }, [events]);
 
-  // Handle date change
+  // Handle date change from the date picker
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
   };
 
-  // Navigate to previous month
+  // Navigate to the previous month
   const prevMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(selectedDate.getMonth() - 1);
     setSelectedDate(newDate);
   };
 
-  // Navigate to next month
+  // Navigate to the next month
   const nextMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(selectedDate.getMonth() + 1);
@@ -83,7 +90,7 @@ function App() {
     }
   };
 
-  // Handle mouse down event to start dragging
+  // Handle mouse down event for dragging to create a new event
   const handleMouseDown = (
     e: MouseEvent<HTMLDivElement>,
     resourceIndex: number,
@@ -173,14 +180,30 @@ function App() {
     document.addEventListener("mouseup", handleMouseUp as EventListener);
   };
 
-  // Handle event deletion
+  // Show the custom dialog box when attempting to delete an event
   const handleDelete = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== id));
-    }
+    setEventToDelete(id); // Set the event ID to be deleted
+    setDialogVisible(true); // Show the custom dialog box
   };
 
-  // Handle event resizing
+  // Confirm deletion of the event
+  const confirmDelete = () => {
+    if (eventToDelete !== null) {
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventToDelete)
+      );
+    }
+    setDialogVisible(false); // Hide the custom dialog box
+    setEventToDelete(null); // Clear the event ID to be deleted
+  };
+
+  // Cancel deletion of the event
+  const cancelDelete = () => {
+    setDialogVisible(false); // Hide the custom dialog box
+    setEventToDelete(null); // Clear the event ID to be deleted
+  };
+
+  // Handle resizing of events
   const handleResize = (id: number, width: number, start: number) => {
     setEvents((prevEvents) =>
       prevEvents.map((event) =>
@@ -189,7 +212,7 @@ function App() {
     );
   };
 
-  // Generate a random color
+  // Generate a random color for the events
   const getRandomColor = (index: number) => {
     const colors = [
       "#fb7185", // Light Rose
@@ -211,12 +234,10 @@ function App() {
     return colors[index % colors.length];
   };
 
-  // Filter events to only include events for the current month
+  // Filter events based on the current month and year
   const filteredEvents = events.filter(
     (event) => event.year === year && event.month === month
   );
-
-  console.log("Filtered events:", filteredEvents); // Debugging log
 
   return (
     <div className="h-screen flex flex-col">
@@ -229,7 +250,7 @@ function App() {
       />
       <div className="flex-grow overflow-x-auto">
         <Grid
-          currentMonth={currentMonth}
+          currentMonth={selectedDate}
           events={filteredEvents}
           currentDragEvent={currentDragEvent}
           dateRefs={dateRefs}
@@ -238,6 +259,13 @@ function App() {
           onResize={handleResize}
         />
       </div>
+      {dialogVisible && (
+        <CustomDialog
+          message="Are you sure you want to delete this event?"
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
     </div>
   );
 }
