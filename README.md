@@ -17,7 +17,7 @@ https://github.com/user-attachments/assets/9a2105f9-4dea-42de-aa25-7ece6ffd8bf0
 
 2. **Navigate to the Project Directory**
    ```bash
-   cd mobiscroll-calendar
+   cd guestara-task
 
 3. **Install Dependencies**
    ```bash
