@@ -111,7 +111,7 @@ function App() {
       month,
       year,
     };
-
+    console.log(newEvent.start, newEvent.resource, newEvent.day);
     dragEvent.current = {
       newEvent: newEvent,
       startX,
@@ -128,14 +128,19 @@ function App() {
         const startTime = (newEvent.start / cellWidth) * 24;
         const endTime = ((newEvent.start + newWidth) / cellWidth) * 24;
 
+        const resourceIndex = newEvent.resource; // Determine the resource index
+        const newColor = getRandomColor(resourceIndex); // Get the color based on resource index
+
         setCurrentDragEvent({
           ...newEvent,
           width: newWidth,
           startTime,
           endTime,
+          color: newColor, // Update the color dynamically
         });
       }
     };
+
 
     const handleMouseUp = () => {
       if (dragEvent.current) {
@@ -211,6 +216,28 @@ function App() {
       )
     );
   };
+  // Handle event dragging
+  const handleDrag = (
+    id: number,
+    start: number,
+    resourceIndex: number,
+    dayIndex: number
+  ) => {
+    setEvents((prevEvents) =>
+      prevEvents.map((event) =>
+        event.id === id
+          ? {
+              ...event,
+              start,
+              resource: resourceIndex,
+              day: dayIndex,
+              color: getRandomColor(resourceIndex), // Change color based on the new position
+            }
+          : event
+      )
+    );
+  };
+
 
   // Generate a random color for the events
   const getRandomColor = (index: number) => {
@@ -257,6 +284,7 @@ function App() {
           onMouseDown={handleMouseDown}
           onDelete={handleDelete}
           onResize={handleResize}
+          onDrag={handleDrag}
         />
       </div>
       {dialogVisible && (

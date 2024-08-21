@@ -15,7 +15,17 @@ interface GridProps {
     dayIndex: number
   ) => void;
   onDelete: (id: number) => void;
-  onResize: (id: number, width: number, start: number) => void;
+  onResize: (
+    id: number,
+    width: number,
+    start: number,
+  ) => void;
+  onDrag: (
+    id: number,
+    start: number,
+    resourceIndex: number,
+    dayIndex: number
+  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -26,11 +36,11 @@ const Grid: React.FC<GridProps> = ({
   onMouseDown,
   onDelete,
   onResize,
+  onDrag,
 }) => {
   const daysInMonth = getDaysInMonth(currentMonth);
   const rows = [];
 
-  // Format hours into AM/PM format
   const formatTime = (hours: number) => {
     const h = Math.floor(hours);
     const m = Math.floor((hours - h) * 60);
@@ -39,13 +49,9 @@ const Grid: React.FC<GridProps> = ({
     return `${formattedHour}:${m.toString().padStart(2, "0")} ${period}`;
   };
 
-  console.log("Grid component received events:", events); // Debugging log
-
-  // Create rows and cells for the grid
   for (let row = -1; row < 15; row++) {
     const cells = [];
     if (row === -1) {
-      // Header row for dates
       cells.push(
         <div
           className="flex justify-left items-start pl-2 sticky left-0 z-30 w-40 bg-white border border-gray-200"
@@ -53,7 +59,6 @@ const Grid: React.FC<GridProps> = ({
         />
       );
     } else {
-      // Header column for resources
       cells.push(
         <div
           className="flex justify-left items-start pl-2 w-40 border border-gray-200 bg-white sticky font-medium left-0 z-30 select-none"
@@ -66,7 +71,6 @@ const Grid: React.FC<GridProps> = ({
 
     for (let col = 1; col <= daysInMonth; col++) {
       if (row === -1) {
-        // Date cells
         const date = new Date(
           currentMonth.getFullYear(),
           currentMonth.getMonth(),
@@ -89,11 +93,10 @@ const Grid: React.FC<GridProps> = ({
           </div>
         );
       } else {
-        // Event cells
         const dayIndex = col - 1;
         cells.push(
           <div
-            className="flex justify-center items-center py-2 px-1 border border-gray-200 h-16 w-20 relative"
+            className="flex justify-center items-center py-2 px-1 border border-gray-200 h-16 w-20 relative event-cell"
             key={`cell-${row}-${col}`}
             onMouseDown={(e) => onMouseDown(e, row, dayIndex)}
           >
@@ -106,9 +109,31 @@ const Grid: React.FC<GridProps> = ({
                   key={event.id}
                   size={{ width: event.width, height: "75%" }}
                   position={{ x: event.start, y: 0 }}
-                  onDragStop={(_e, d) => {
-                    const newStart = d.x;
-                    onResize(event.id, event.width, newStart);
+                  onDragStart={(e) => e.stopPropagation()}
+                  onDragStop={(e, d) => {
+                    const grid = (e.target as HTMLElement).closest(
+                      ".event-cell"
+                    );
+                    if (!grid) return;
+                    const gridRect = grid.getBoundingClientRect();
+
+                    const mouseX = d.x + gridRect.left - gridRect.width;
+                    const mouseY = d.y + gridRect.top - gridRect.height;
+
+                    const newDayIndex = Math.floor(mouseX / gridRect.width);
+                    const newResourceIndex = Math.floor(
+                      mouseY / gridRect.height
+                    );
+                    const newStart = d.x % gridRect.width;
+
+                    if (
+                      newDayIndex >= 0 &&
+                      newDayIndex < daysInMonth &&
+                      newResourceIndex >= 0 &&
+                      newResourceIndex < 15
+                    ) {
+                      onDrag(event.id, newStart, newResourceIndex, newDayIndex);
+                    }
                   }}
                   onResizeStop={(_e, _direction, ref, _delta, position) => {
                     const newWidth = ref.offsetWidth;
@@ -176,7 +201,10 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     rows.push(
-      <div className="grid grid-flow-col auto-cols-max" key={row}>
+      <div
+        className="grid grid-flow-col auto-cols-max grid-container"
+        key={row}
+      >
         {cells}
       </div>
     );
