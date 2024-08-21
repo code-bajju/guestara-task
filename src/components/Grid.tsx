@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { format, getDaysInMonth, isToday } from "date-fns";
 import { Event } from "../types";
 import { SquareXIcon } from "lucide-react";
@@ -40,6 +40,7 @@ const Grid: React.FC<GridProps> = ({
   onResize,
   onDrag,
 }) => {
+  const [disableDrag, setDisableDrag] = useState(false); // State to disable dragging while interacting with delete icon button
   const daysInMonth = getDaysInMonth(currentMonth);
   const rows = [];
 
@@ -59,6 +60,7 @@ const Grid: React.FC<GridProps> = ({
     const newEndTime = (positionX + width) / hourWidth;
     return { newStartTime, newEndTime };
   };
+
   // Create rows and cells for the grid
   for (let row = -1; row < 15; row++) {
     const cells = [];
@@ -124,6 +126,7 @@ const Grid: React.FC<GridProps> = ({
                   key={event.id}
                   size={{ width: event.width, height: "75%" }}
                   position={{ x: event.start, y: 0 }}
+                  disableDragging={disableDrag} // Disable dragging based on state
                   onDragStart={(e) => e.stopPropagation()}
                   onDragStop={(e, d) => {
                     const grid = (e.target as HTMLElement).closest(
@@ -209,8 +212,11 @@ const Grid: React.FC<GridProps> = ({
                     <SquareXIcon
                       color="white"
                       className="absolute -top-2 -right-2 z-30 hidden group-hover:flex size-4 cursor-pointer"
+                      onMouseEnter={() => setDisableDrag(true)} // Disable dragging on hover
+                      onMouseLeave={() => setDisableDrag(false)} // Enable dragging on hover out
                       onClick={(e) => {
                         e.stopPropagation();
+                        setDisableDrag(false); // Ensure dragging is re-enabled after delete
                         onDelete(event.id);
                       }}
                     />
