@@ -216,7 +216,7 @@ const Grid: React.FC<GridProps> = ({
                       onMouseLeave={() => setDisableDrag(false)} // Enable dragging on hover out
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDisableDrag(false); // Ensure dragging is re-enabled after delete
+                        setDisableDrag(false); // To ensure dragging is re-enabled after delete
                         onDelete(event.id);
                       }}
                     />
