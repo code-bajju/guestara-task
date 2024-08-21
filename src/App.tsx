@@ -222,8 +222,8 @@ function App() {
               ...event,
               width,
               start,
-              startTime: newStartTime, // Update start time
-              endTime: newEndTime, // Update end time
+              startTime: Math.max(0, Math.min(newStartTime, 24)), // Update start time
+              endTime: Math.max(0, Math.min(newEndTime, 24)), // Update end time
             }
           : event
       )
@@ -246,8 +246,8 @@ function App() {
               start,
               resource: resourceIndex,
               day: dayIndex,
-              startTime: (start / event.width) * 24, // Calculate new start time
-              endTime: ((start + event.width) / event.width) * 24, // Adjust end time accordingly
+             startTime: Math.max(0, Math.min((start / event.width) * 24, 24)), // Ensure startTime is valid
+            endTime: Math.max(0, Math.min(((start + event.width) / event.width) * 24, 24)), // Adjust endTime accordingly
               color: getRandomColor(resourceIndex), // Change color based on the new position
             }
           : event

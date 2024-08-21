@@ -52,7 +52,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const calculateTime = (positionX: number, width: number) => {
-    const hourWidth = 500; // Example: 1 hour is represented by 50 pixels
+    const hourWidth = 8; // Example: 1 hour is represented by 50 pixels
     const newStartTime = positionX / hourWidth;
     const newEndTime = (positionX + width) / hourWidth;
     return { newStartTime, newEndTime };
