@@ -136,7 +136,7 @@ function App() {
           width: newWidth,
           startTime,
           endTime,
-          color: newColor, // Update the color dynamically
+          color: newColor,
         });
       }
     };
@@ -230,7 +230,6 @@ function App() {
     );
   };
 
-
   // Handle event dragging
   const handleDrag = (
     id: number,
@@ -246,8 +245,11 @@ function App() {
               start,
               resource: resourceIndex,
               day: dayIndex,
-             startTime: Math.max(0, Math.min((start / event.width) * 24, 24)), // Ensure startTime is valid
-            endTime: Math.max(0, Math.min(((start + event.width) / event.width) * 24, 24)), // Adjust endTime accordingly
+              startTime: Math.max(0, Math.min((start / event.width) * 24, 24)),
+              endTime: Math.max(
+                0,
+                Math.min(((start + event.width) / event.width) * 24, 24)
+              ),
               color: getRandomColor(resourceIndex), // Change color based on the new position
             }
           : event

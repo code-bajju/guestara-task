@@ -43,6 +43,7 @@ const Grid: React.FC<GridProps> = ({
   const daysInMonth = getDaysInMonth(currentMonth);
   const rows = [];
 
+  // Format hours into AM/PM format
   const formatTime = (hours: number) => {
     const h = Math.floor(hours);
     const m = Math.floor((hours - h) * 60);
@@ -51,16 +52,18 @@ const Grid: React.FC<GridProps> = ({
     return `${formattedHour}:${m.toString().padStart(2, "0")} ${period}`;
   };
 
+  // Calculate the event time duration on change of position and size
   const calculateTime = (positionX: number, width: number) => {
-    const hourWidth = 8; // Example: 1 hour is represented by 50 pixels
+    const hourWidth = 8;
     const newStartTime = positionX / hourWidth;
     const newEndTime = (positionX + width) / hourWidth;
     return { newStartTime, newEndTime };
   };
-
+  // Create rows and cells for the grid
   for (let row = -1; row < 15; row++) {
     const cells = [];
     if (row === -1) {
+      // Header row for dates
       cells.push(
         <div
           className="flex justify-left items-start pl-2 sticky left-0 z-30 w-40 bg-white border border-gray-200"
@@ -68,6 +71,7 @@ const Grid: React.FC<GridProps> = ({
         />
       );
     } else {
+      // Header column for resources
       cells.push(
         <div
           className="flex justify-left items-start pl-2 w-40 border border-gray-200 bg-white sticky font-medium left-0 z-30 select-none"
@@ -80,6 +84,7 @@ const Grid: React.FC<GridProps> = ({
 
     for (let col = 1; col <= daysInMonth; col++) {
       if (row === -1) {
+        // Date cells
         const date = new Date(
           currentMonth.getFullYear(),
           currentMonth.getMonth(),
@@ -102,6 +107,7 @@ const Grid: React.FC<GridProps> = ({
           </div>
         );
       } else {
+        // Event cells
         const dayIndex = col - 1;
         cells.push(
           <div
@@ -144,7 +150,7 @@ const Grid: React.FC<GridProps> = ({
                       onDrag(event.id, newStart, newResourceIndex, newDayIndex);
                     }
                   }}
-                  onResize={(e, direction, ref, delta, position) => {
+                  onResize={(_e, _direction, ref, _delta, position) => {
                     const newWidth = ref.offsetWidth;
                     const newStart = position.x;
                     const { newStartTime, newEndTime } = calculateTime(
@@ -152,7 +158,6 @@ const Grid: React.FC<GridProps> = ({
                       newWidth
                     );
 
-                    // Update the event's time during the resize operation
                     onResize(
                       event.id,
                       newWidth,
@@ -169,7 +174,6 @@ const Grid: React.FC<GridProps> = ({
                       newWidth
                     );
 
-                    // Finalize the resizing operation
                     onResize(
                       event.id,
                       newWidth,
