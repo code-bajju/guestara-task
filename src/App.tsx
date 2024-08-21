@@ -141,7 +141,6 @@ function App() {
       }
     };
 
-
     const handleMouseUp = () => {
       if (dragEvent.current) {
         const { newEvent, startX, initialCell } = dragEvent.current;
@@ -209,13 +208,29 @@ function App() {
   };
 
   // Handle resizing of events
-  const handleResize = (id: number, width: number, start: number) => {
+  const handleResize = (
+    id: number,
+    width: number,
+    start: number,
+    newStartTime: number,
+    newEndTime: number
+  ) => {
     setEvents((prevEvents) =>
       prevEvents.map((event) =>
-        event.id === id ? { ...event, width, start } : event
+        event.id === id
+          ? {
+              ...event,
+              width,
+              start,
+              startTime: newStartTime, // Update start time
+              endTime: newEndTime, // Update end time
+            }
+          : event
       )
     );
   };
+
+
   // Handle event dragging
   const handleDrag = (
     id: number,
@@ -231,13 +246,14 @@ function App() {
               start,
               resource: resourceIndex,
               day: dayIndex,
+              startTime: (start / event.width) * 24, // Calculate new start time
+              endTime: ((start + event.width) / event.width) * 24, // Adjust end time accordingly
               color: getRandomColor(resourceIndex), // Change color based on the new position
             }
           : event
       )
     );
   };
-
 
   // Generate a random color for the events
   const getRandomColor = (index: number) => {

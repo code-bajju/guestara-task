@@ -19,6 +19,8 @@ interface GridProps {
     id: number,
     width: number,
     start: number,
+    newStartTime: number,
+    newEndTime: number
   ) => void;
   onDrag: (
     id: number,
@@ -47,6 +49,13 @@ const Grid: React.FC<GridProps> = ({
     const period = h < 12 ? "AM" : "PM";
     const formattedHour = h % 12 === 0 ? 12 : h % 12;
     return `${formattedHour}:${m.toString().padStart(2, "0")} ${period}`;
+  };
+
+  const calculateTime = (positionX: number, width: number) => {
+    const hourWidth = 500; // Example: 1 hour is represented by 50 pixels
+    const newStartTime = positionX / hourWidth;
+    const newEndTime = (positionX + width) / hourWidth;
+    return { newStartTime, newEndTime };
   };
 
   for (let row = -1; row < 15; row++) {
@@ -135,10 +144,39 @@ const Grid: React.FC<GridProps> = ({
                       onDrag(event.id, newStart, newResourceIndex, newDayIndex);
                     }
                   }}
+                  onResize={(e, direction, ref, delta, position) => {
+                    const newWidth = ref.offsetWidth;
+                    const newStart = position.x;
+                    const { newStartTime, newEndTime } = calculateTime(
+                      newStart,
+                      newWidth
+                    );
+
+                    // Update the event's time during the resize operation
+                    onResize(
+                      event.id,
+                      newWidth,
+                      newStart,
+                      newStartTime,
+                      newEndTime
+                    );
+                  }}
                   onResizeStop={(_e, _direction, ref, _delta, position) => {
                     const newWidth = ref.offsetWidth;
                     const newStart = position.x;
-                    onResize(event.id, newWidth, newStart);
+                    const { newStartTime, newEndTime } = calculateTime(
+                      newStart,
+                      newWidth
+                    );
+
+                    // Finalize the resizing operation
+                    onResize(
+                      event.id,
+                      newWidth,
+                      newStart,
+                      newStartTime,
+                      newEndTime
+                    );
                   }}
                   enableResizing={{
                     left: true,
