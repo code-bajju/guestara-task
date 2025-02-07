@@ -3,7 +3,7 @@ import { Header } from "./components/Header";
 import Grid from "./components/Grid";
 import { Event } from "./types";
 import { format } from "date-fns";
-import CustomDialog from "./components/CustomDialog";
+import CrossDialog from "./components/Dialog/CrossDialog";
 
 function App() {
   // State to manage the selected date
@@ -218,7 +218,7 @@ function App() {
       <div className="flex-grow overflow-x-auto">
         <Grid currentMonth={selectedDate} events={events} currentDragEvent={currentDragEvent} dateRefs={dateRefs} onMouseDown={handleMouseDown} onDelete={handleDelete} onResize={handleResize} onDrag={handleDrag} />
       </div>
-      {dialogVisible && <CustomDialog message="Are you sure you want to delete this event?" onConfirm={confirmDelete} onCancel={cancelDelete} />}
+      {dialogVisible && <CrossDialog message="Are you sure you want to delete this event?" onConfirm={confirmDelete} onCancel={cancelDelete} />}
     </div>
   );
 }

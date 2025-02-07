@@ -1,12 +1,12 @@
 import React from "react";
 
-interface CustomDialogProps {
+interface CrossDialogProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-const CustomDialog: React.FC<CustomDialogProps> = ({
+const CrossDialog: React.FC<CrossDialogProps> = ({
   message,
   onConfirm,
   onCancel,
@@ -34,4 +34,4 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
   );
 };
 
-export default CustomDialog;
+export default CrossDialog;
