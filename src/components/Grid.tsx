@@ -125,7 +125,7 @@ const Grid: React.FC<GridProps> = ({
                 <Rnd
                   key={event.id}
                   size={{ width: event.width, height: "75%" }}
-                  position={{ x: event.start, y: 0 }}
+                  position={{ x: event.start, y:8 }}
                   disableDragging={disableDrag} // Disable dragging based on state
                   onDragStart={(e) => e.stopPropagation()}
                   onDragStop={(e, d) => {
@@ -206,7 +206,7 @@ const Grid: React.FC<GridProps> = ({
                   <div className="event-content select-none relative">
                     <div className="truncate">New Event</div>
                     <div className="font-normal truncate">
-                      {formatTime(event.startTime)} -{" "}
+                      {formatTime(event.startTime)} - {" "}
                       {formatTime(event.endTime)}
                     </div>
                     <SquareXIcon

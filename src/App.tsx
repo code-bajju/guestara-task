@@ -7,10 +7,16 @@ import CustomDialog from "./components/CustomDialog";
 
 function App() {
   // State to manage the selected date
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const storedDate = localStorage.getItem("selectedDate");
+    return storedDate ? new Date(storedDate) : new Date();
+  });
 
   // State to manage events
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>(() => {
+    const storedEvents = localStorage.getItem("events");
+    return storedEvents ? JSON.parse(storedEvents) : [];
+  });
 
   // State to manage the currently dragging event
   const [currentDragEvent, setCurrentDragEvent] = useState<Event | null>(null);
@@ -35,26 +41,14 @@ function App() {
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
 
-  // Load events from localStorage on initial render
+  // Save selected date to localStorage
   useEffect(() => {
-    const storedEvents = localStorage.getItem("events");
-    if (storedEvents) {
-      try {
-        const parsedEvents = JSON.parse(storedEvents) as Event[];
-        setEvents(parsedEvents);
-      } catch (error) {
-        console.error("Failed to parse events from localStorage", error);
-      }
-    }
-  }, []);
+    localStorage.setItem("selectedDate", selectedDate.toISOString());
+  }, [selectedDate]);
 
   // Save events to localStorage whenever the events state changes
   useEffect(() => {
-    try {
-      localStorage.setItem("events", JSON.stringify(events));
-    } catch (error) {
-      console.error("Failed to save events to localStorage", error);
-    }
+    localStorage.setItem("events", JSON.stringify(events));
   }, [events]);
 
   // Handle date change from the date picker
@@ -64,16 +58,12 @@ function App() {
 
   // Navigate to the previous month
   const prevMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(selectedDate.getMonth() - 1);
-    setSelectedDate(newDate);
+    setSelectedDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
 
   // Navigate to the next month
   const nextMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(selectedDate.getMonth() + 1);
-    setSelectedDate(newDate);
+    setSelectedDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
   // Scroll to today's date
@@ -100,7 +90,7 @@ function App() {
     const startX = e.clientX - cell.left;
 
     const newEvent: Event = {
-      id: new Date().getTime(),
+      id: Date.now(),
       resource: resourceIndex,
       day: dayIndex,
       start: startX,
@@ -111,9 +101,9 @@ function App() {
       month,
       year,
     };
-    console.log(newEvent.start, newEvent.resource, newEvent.day);
+
     dragEvent.current = {
-      newEvent: newEvent,
+      newEvent,
       startX,
       initialCell: cell,
     };
@@ -128,15 +118,12 @@ function App() {
         const startTime = (newEvent.start / cellWidth) * 24;
         const endTime = ((newEvent.start + newWidth) / cellWidth) * 24;
 
-        const resourceIndex = newEvent.resource; // Determine the resource index
-        const newColor = getRandomColor(resourceIndex); // Get the color based on resource index
-
         setCurrentDragEvent({
           ...newEvent,
           width: newWidth,
           startTime,
           endTime,
-          color: newColor,
+          color: getRandomColor(resourceIndex),
         });
       }
     };
@@ -145,9 +132,7 @@ function App() {
       if (dragEvent.current) {
         const { newEvent, startX, initialCell } = dragEvent.current;
         const newWidth = Math.max(
-          (window.event as unknown as MouseEvent).clientX -
-            initialCell.left -
-            startX,
+          (window.event as unknown as MouseEvent).clientX - initialCell.left - startX,
           0
         );
         const cellWidth = initialCell.width;
@@ -170,88 +155,52 @@ function App() {
 
       setCurrentDragEvent(null);
       dragEvent.current = null;
-      document.removeEventListener(
-        "mousemove",
-        handleMouseMove as unknown as EventListener
-      );
+      document.removeEventListener("mousemove", handleMouseMove as unknown as EventListener);
       document.removeEventListener("mouseup", handleMouseUp as EventListener);
     };
 
-    document.addEventListener(
-      "mousemove",
-      handleMouseMove as unknown as EventListener
-    );
+    document.addEventListener("mousemove", handleMouseMove as unknown as EventListener);
     document.addEventListener("mouseup", handleMouseUp as EventListener);
   };
 
   // Show the custom dialog box when attempting to delete an event
   const handleDelete = (id: number) => {
-    setEventToDelete(id); // Set the event ID to be deleted
-    setDialogVisible(true); // Show the custom dialog box
+    setEventToDelete(id);
+    setDialogVisible(true);
   };
 
   // Confirm deletion of the event
   const confirmDelete = () => {
     if (eventToDelete !== null) {
-      setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.id !== eventToDelete)
-      );
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventToDelete));
     }
-    setDialogVisible(false); // Hide the custom dialog box
-    setEventToDelete(null); // Clear the event ID to be deleted
+    setDialogVisible(false);
+    setEventToDelete(null);
   };
 
   // Cancel deletion of the event
   const cancelDelete = () => {
-    setDialogVisible(false); // Hide the custom dialog box
-    setEventToDelete(null); // Clear the event ID to be deleted
+    setDialogVisible(false);
+    setEventToDelete(null);
   };
 
   // Handle resizing of events
-  const handleResize = (
-    id: number,
-    width: number,
-    start: number,
-    newStartTime: number,
-    newEndTime: number
-  ) => {
+  const handleResize = (id: number, width: number, start: number, newStartTime: number, newEndTime: number) => {
     setEvents((prevEvents) =>
       prevEvents.map((event) =>
         event.id === id
-          ? {
-              ...event,
-              width,
-              start,
-              startTime: Math.max(0, Math.min(newStartTime, 24)), // Update start time
-              endTime: Math.max(0, Math.min(newEndTime, 24)), // Update end time
-            }
+          ? { ...event, width, start, startTime: Math.max(0, Math.min(newStartTime, 24)), endTime: Math.max(0, Math.min(newEndTime, 24)) }
           : event
       )
     );
   };
 
   // Handle event dragging
-  const handleDrag = (
-    id: number,
-    start: number,
-    resourceIndex: number,
-    dayIndex: number
-  ) => {
+  const handleDrag = (id: number, start: number, resourceIndex: number, dayIndex: number) => {
     setEvents((prevEvents) =>
       prevEvents.map((event) =>
         event.id === id
-          ? {
-              ...event,
-              start,
-              resource: resourceIndex,
-              day: dayIndex,
-              startTime: Math.max(0, Math.min((start / event.width) * 24, 24)),
-              endTime: Math.max(
-                0,
-                Math.min(((start + event.width) / event.width) * 24, 24)
-              ),
-              color: getRandomColor(resourceIndex), // Change color based on the new position
-            }
+          ? { ...event, start, resource: resourceIndex, day: dayIndex, startTime: Math.max(0, Math.min((start / event.width) * 24, 24)), endTime: Math.max(0, Math.min(((start + event.width) / event.width) * 24, 24)), color: getRandomColor(resourceIndex) }
           : event
       )
     );
@@ -259,59 +208,17 @@ function App() {
 
   // Generate a random color for the events
   const getRandomColor = (index: number) => {
-    const colors = [
-      "#fb7185", // Light Rose
-      "#e879f9", // Bit Light Fuchsia
-      "#eab308", // Yellow
-      "#C38F63", // Light saddle brown
-      "#84cc16", // bit dark lime
-      "#D35A5A", // Light firebrick
-      "#A03333", // Light maroon
-      "#A0A033", // Light olive
-      "#33A033", // Light green
-      "#33A0A0", // Light teal
-      "#2E5A88", // Light navy
-      "#6D5ACF", // Light indigo
-      "#CBC3E3", // Light purple
-      "#FF9933", // Light orange
-      "#FFCC99", // Light peach
-    ];
+    const colors = ["#FFC0CB", "#F3C1FF", "#F8E089", "#E3B98D", "#C5E882", "#F4A3A3", "#D98888", "#D1D16D", "#88D888", "#88D1D1", "#75A5D1", "#A89BF2", "#E8E0F5", "#FFD699", "#FFE5CC"];
     return colors[index % colors.length];
   };
 
-  // Filter events based on the current month and year
-  const filteredEvents = events.filter(
-    (event) => event.year === year && event.month === month
-  );
-
   return (
     <div className="h-screen flex flex-col">
-      <Header
-        selectedDate={selectedDate}
-        handleDateChange={handleDateChange}
-        prevMonth={prevMonth}
-        nextMonth={nextMonth}
-        scrollToToday={scrollToToday}
-      />
+      <Header selectedDate={selectedDate} handleDateChange={handleDateChange} prevMonth={prevMonth} nextMonth={nextMonth} scrollToToday={scrollToToday} />
       <div className="flex-grow overflow-x-auto">
-        <Grid
-          currentMonth={selectedDate}
-          events={filteredEvents}
-          currentDragEvent={currentDragEvent}
-          dateRefs={dateRefs}
-          onMouseDown={handleMouseDown}
-          onDelete={handleDelete}
-          onResize={handleResize}
-          onDrag={handleDrag}
-        />
+        <Grid currentMonth={selectedDate} events={events} currentDragEvent={currentDragEvent} dateRefs={dateRefs} onMouseDown={handleMouseDown} onDelete={handleDelete} onResize={handleResize} onDrag={handleDrag} />
       </div>
-      {dialogVisible && (
-        <CustomDialog
-          message="Are you sure you want to delete this event?"
-          onConfirm={confirmDelete}
-          onCancel={cancelDelete}
-        />
-      )}
+      {dialogVisible && <CustomDialog message="Are you sure you want to delete this event?" onConfirm={confirmDelete} onCancel={cancelDelete} />}
     </div>
   );
 }
